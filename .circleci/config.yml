@@ -43,6 +43,15 @@ commands:
       - node/install:
           node-version: '13.8.0'
       - run: npm install -g npm@6.13.6
+
+  print_log:
+    description: prints log
+    steps:
+      - run:
+          name: Print log file content
+          when: on_fail
+          command: |
+            cat $( find /home/circleci/.npm/_logs/ -name '*-debug.log' )
             
 jobs:
   build-frontend:
@@ -207,8 +216,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [ backend-build ]
       - run:
           name: npm install
           command: |
@@ -230,6 +237,7 @@ jobs:
                # If you are using kvdb.io, generate the bucket ID "XNjCwZ1jMWuAb3nLUaKCeT" in your local terminal first
                curl https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             fi
+      - print_log
       - aws-cli/setup
       - destroy-environment:
           stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
