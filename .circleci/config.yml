@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.0.3
+  aws-cli: circleci/aws-cli@3.1.4
 
 commands:
   destroy-environment:
@@ -10,6 +11,7 @@ commands:
       stack-name:
         type: string
     steps:
+      - aws-cli/setup
       - run:
           name: Destroy environments
           when: on_fail
@@ -206,12 +208,19 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [ backend-build ]
       - run:
-          name: Run migrations
+          name: npm install
           command: |
             cd backend
             npm install
-            npm run migrations > migrations_dump.txt
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+
+      - run:
+          name: Run migrations
+          command: npm run migrations > migrations_dump.txt
       - run:
           name: Send migration results to kvdb.io
           command: |   
