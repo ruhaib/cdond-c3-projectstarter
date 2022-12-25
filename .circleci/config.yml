@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  node: circleci/node@5.0.3
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -16,20 +19,21 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      workflow_id:
+        type: string
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
+            SUCCESS = $(curl https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_<< parameters.run_id >>)
             if(( $SUCCESS==1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd ~/backend
+              npm install
+              Add revert code here. You can find this in the Getting Started section.
+              npm run migrations:revert
             fi
             
 jobs:
@@ -190,6 +194,76 @@ jobs:
       - destroy-environment:
           stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
 
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [ backend-build ]
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
+            npm install
+            npm run migrations > migrations_dump.txt
+      - run:
+          name: Send migration results to kvdb.io
+          command: |   
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            then
+               # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
+               curl https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+            fi
+      - destroy-environment:
+          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+
+      - node/install:
+          name: Install node
+          node-version: '13.8.0'
+      - run: sudo npm install -g npm@latest
+      - restore_cache:
+          keys: [ frontend-build ]
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm install
+            npm run build
+      - run:
+          name: Deploy frontend artifacts
+          command: |
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment:
+          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
 workflows:
   default:
     jobs:
@@ -207,3 +281,5 @@ workflows:
           requires: [ test-frontend, test-backend, scan-frontend, scan-backend ]
       - configure-infrastructure:
           requires: [ deploy-infrastructure ]
+      - run-migrations:
+          requires: [ configure-infrastructure ]
