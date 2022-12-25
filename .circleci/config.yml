@@ -208,6 +208,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [ backend-build ]
+      - run: yum install -y tar gzip
       - install-npm
       - run:
           name: Run migrations
@@ -280,8 +281,12 @@ jobs:
           fingerprints: [ "23:5b:e4:09:a7:70:b1:39:b8:a3:f9:33:49:c4:b0:b1:a0:2e:77:30" ]
       - attach_workspace:
           at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update tar
+            apk add --update gzip
       - install-npm
-      - run: yum install -y tar gzip
       - run:
           name: Install ansible
           command: |
