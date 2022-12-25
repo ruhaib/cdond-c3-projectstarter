@@ -40,7 +40,6 @@ commands:
     description: Install npm
     steps:
       - node/install:
-          name: Install node
           node-version: '13.8.0'
       - run: sudo npm install -g npm@latest
             
