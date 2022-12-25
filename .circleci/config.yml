@@ -44,15 +44,6 @@ commands:
           node-version: '13.8.0'
       - run: npm install -g npm@6.13.6
 
-  print_log:
-    description: prints log
-    steps:
-      - run:
-          name: Print log file content
-          when: on_fail
-          command: |
-            cat $( find /home/circleci/.npm/_logs/ -name '*-debug.log' )
-            
 jobs:
   build-frontend:
     docker:
@@ -231,12 +222,14 @@ jobs:
       - run:
           name: Send migration results to kvdb.io
           command: |   
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." backend/migrations_dump.txt
             then
-               # If you are using kvdb.io, generate the bucket ID "XNjCwZ1jMWuAb3nLUaKCeT" in your local terminal first
-               curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+                echo "migration successful"
+                curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            else
+                echo "migration failed"
+                curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '0'
             fi
-      - print_log
       - destroy-environment:
           stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
@@ -251,6 +244,8 @@ jobs:
           name: Install ansible
           command: |
             apk add --update ansible
+            apk add --update tar
+            apk add --update gzip
       - run:
           name: Get backend url
           command: |
@@ -263,17 +258,12 @@ jobs:
             cat frontend/.env
 
       - install-npm
-      - restore_cache:
-          keys: [ frontend-build ]
       - run:
           name: Deploy frontend objects
           command: |
             cd frontend
             npm install
             npm run build
-      - run:
-          name: Deploy frontend artifacts
-          command: |
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
@@ -297,13 +287,12 @@ jobs:
           command: |
             apk add --update tar
             apk add --update gzip
-      - install-npm
-      - run:
-          name: Install ansible
-          command: |
+            apk add --update curl
             apk add --update ansible
-      - restore_cache:
-          keys: [ backend-build ]
+      - install-npm
+      - aws-cli/setup
+      - node/install:
+          node-version: '13.8.0'
       - run:
           name: Deploy backend
           command: |
@@ -343,3 +332,7 @@ workflows:
           requires: [ deploy-infrastructure ]
       - run-migrations:
           requires: [ configure-infrastructure ]
+      - deploy-frontend:
+          requires: [ run-migrations ]
+      - deploy-backend:
+          requires: [ run-migrations ]
