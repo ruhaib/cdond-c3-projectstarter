@@ -223,6 +223,7 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
             npm audit fix --force
+            npm install typescript -g
 
       - run:
           name: Run migrations
