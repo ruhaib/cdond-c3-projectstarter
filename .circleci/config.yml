@@ -41,7 +41,7 @@ commands:
     steps:
       - node/install:
           node-version: '13.8.0'
-      - run: npm install -g npm@latest
+      - run: npm install -g npm@6.13.6
             
 jobs:
   build-frontend:
