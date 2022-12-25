@@ -71,7 +71,7 @@ jobs:
     docker:
       # Docker image here
     steps:
-      # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
                 
@@ -79,7 +79,7 @@ jobs:
     docker:
       # Docker image here
     steps:
-      # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
             
@@ -87,7 +87,7 @@ jobs:
     docker:
       # Docker image here
     steps:
-      # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
 
@@ -95,7 +95,7 @@ jobs:
     docker:
       # Docker image here
     steps:
-      # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
 
@@ -103,7 +103,7 @@ jobs:
     docker:
       # Docker image here that supports AWS CLI
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -137,7 +137,7 @@ jobs:
     docker:
       # Docker image here that supports Ansible
     steps:
-      # Checkout code from git
+      - checkout
       # Add ssh keys with fingerprint
       # attach workspace
       - run:
@@ -156,7 +156,7 @@ jobs:
     docker:
       # Docker image here that supports NodeJS
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Run migrations
           command: |
@@ -173,7 +173,7 @@ jobs:
     docker:
       # Docker image here that supports AWS CLI
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -194,7 +194,7 @@ jobs:
     docker:
       # Docker image here that supports Ansible
     steps:
-      # Checkout code from git
+      - checkout
       # Add ssh keys with fingerprint
       # attach workspace
       - run:
@@ -211,7 +211,7 @@ jobs:
     docker:
       # Lightweight Docker image 
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -234,7 +234,7 @@ jobs:
     docker:
       # Docker image here that supports AWS CLI
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -245,24 +245,24 @@ jobs:
             # your code here
       # Here's where you will add some code to rollback on failure  
 
-cleanup:
-    docker:
-      # Docker image here
-    steps:
-      # Checkout code from git
-      - run:
-          name: Get old stack workflow id
-          command: |
-            # your code here
-            export OldWorkflowID="the id here"
-            export STACKS=[] #put the list of stacks here
-      - run:
-          name: Remove old stacks and files
-          command: |
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-            then
+  cleanup:
+      docker:
+        # Docker image here
+      steps:
+        - checkout
+        - run:
+            name: Get old stack workflow id
+            command: |
               # your code here
-            fi
+              export OldWorkflowID="the id here"
+              export STACKS=[] #put the list of stacks here
+        - run:
+            name: Remove old stacks and files
+            command: |
+              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+              then
+                # your code here
+              fi
             
 
 workflows:
