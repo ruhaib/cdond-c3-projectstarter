@@ -1,7 +1,6 @@
 version: 2.1
 
 orbs:
-  node: circleci/node@5.0.3
   aws-cli: circleci/aws-cli@3.1.4
 
 commands:
@@ -37,13 +36,6 @@ commands:
               npm install
               npm run migrations:revert
             fi
-
-  install-npm:
-    description: Install npm
-    steps:
-      - node/install:
-          node-version: '13.8.0'
-      - run: npm install -g npm@6.13.6
 
 jobs:
   build-frontend:
@@ -270,7 +262,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: ubuntu:20.04
     steps:
       - checkout
       - add_ssh_keys:
@@ -280,13 +272,11 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update tar
-            apk add --update gzip
-            apk add --update curl
-            apk add --update ansible
-            apk add --no-cache bash
-            pip install awscli
-      - install-npm
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y awscli ansible curl tar gzip
+            curl -sL https://deb.nodesource.com/setup_13.x | bash -
+            apt-get -y install nodejs
       - run:
           name: Deploy backend
           command: |
