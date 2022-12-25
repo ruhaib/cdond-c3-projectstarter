@@ -11,7 +11,6 @@ commands:
       stack-name:
         type: string
     steps:
-      - aws-cli/setup
       - run:
           name: Destroy environments
           when: on_fail
@@ -231,6 +230,7 @@ jobs:
                # If you are using kvdb.io, generate the bucket ID "XNjCwZ1jMWuAb3nLUaKCeT" in your local terminal first
                curl https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             fi
+      - aws-cli/setup
       - destroy-environment:
           stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
