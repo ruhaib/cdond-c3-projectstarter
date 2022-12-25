@@ -217,12 +217,11 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
             npm audit fix --force
-            ls
 
       - run:
           name: Run migrations
           command: |
-            ls
+            cd backend
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration results to kvdb.io
