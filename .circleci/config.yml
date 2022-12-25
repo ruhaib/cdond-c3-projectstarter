@@ -8,14 +8,16 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      stack-name:
+      workflow_id:
         type: string
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name << parameters.stack-name >>
+            aws s3 rm s3://udapeople-<<parameters.workflow_id>> --recursive
+            aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.workflow_id>>
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_id>>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -28,12 +30,11 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = $(curl https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_<< parameters.workflow_id >>)
+            SUCCESS = $(curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_<< parameters.workflow_id >>)
             if(( $SUCCESS==1 )); 
             then
               cd ~/backend
               npm install
-              Add revert code here. You can find this in the Getting Started section.
               npm run migrations:revert
             fi
 
@@ -175,9 +176,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment:
-          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
-          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   configure-infrastructure:
     docker:
@@ -198,9 +197,7 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
-          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
-          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -219,6 +216,7 @@ jobs:
           command: |
             cd backend
             npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
       - run:
           name: Send migration results to kvdb.io
           command: |   
@@ -231,9 +229,7 @@ jobs:
                 curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '0'
             fi
       - destroy-environment:
-          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
-          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
@@ -241,11 +237,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install ansible
+          name: Install dependencies
           command: |
-            apk add --update ansible
-            apk add --update tar
-            apk add --update gzip
+            curl -sL https://rpm.nodesource.com/setup_13.x | bash -
+            yum -y install nodejs
+            yum -y install tar gzip
+            cd frontend && npm install
       - run:
           name: Get backend url
           command: |
@@ -267,9 +264,7 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
-          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
-          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -289,10 +284,8 @@ jobs:
             apk add --update gzip
             apk add --update curl
             apk add --update ansible
+            pip install awscli
       - install-npm
-      - aws-cli/setup
-      - node/install:
-          node-version: '13.8.0'
       - run:
           name: Deploy backend
           command: |
@@ -307,9 +300,7 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
-          stack-name: udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
-          stack-name: udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
