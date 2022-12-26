@@ -181,14 +181,10 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Check inventory.txt
-          command: |
-            ls
-            cat inventory.txt
-      - run:
           name: Install dependencies
           command: |
             apk add --update ansible
+            apk add aws-cli
       - run:
           name: Configure server
           command: |
