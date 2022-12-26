@@ -10,6 +10,7 @@
     path: /home/ubuntu
 
 - name: "start server"
+  become: yes
   shell: |
     cd /home/ubuntu
     pm2 stop default
