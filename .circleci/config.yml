@@ -309,12 +309,13 @@ jobs:
             apk upgrade
             apk add curl
             apk add --update nodejs npm
+            apk add aws-cli
       - attach_workspace:
           at: ~/
       - run:
           name: Get backend url
           command: |
-            source project/env_vars
+            source ~/project/env_vars
             echo $BACKEND_IP
       - run:
           name: Backend smoke test.
