@@ -11,7 +11,6 @@
 
 - name: "start server"
   become: yes
-  shell: |
-    cd /home/ubuntu
-    pm2 stop default
-    pm2 start npm -- start
+  shell: pm2 start npm -- start
+  args:
+    chdir: /home/ubuntu
