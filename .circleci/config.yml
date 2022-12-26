@@ -318,6 +318,7 @@ jobs:
           name: Backend smoke test.
           command: |
             cat $BASH_ENV
+            source $BASH_ENV
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
