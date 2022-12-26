@@ -313,11 +313,9 @@ jobs:
             --output text)
             echo $BACKEND_IP
             echo "export BACKEND_IP=\"$BACKEND_IP\"" >> $BASH_ENV
-            cat $BASH_ENV
       - run:
           name: Backend smoke test.
           command: |
-            cat $BASH_ENV
             source $BASH_ENV
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
@@ -339,10 +337,10 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+#      - destroy-environment:
+#          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+#      - revert-migrations:
+#          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 workflows:
   default:
