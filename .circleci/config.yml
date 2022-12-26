@@ -29,8 +29,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = $(curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_<< parameters.workflow_id >>)
-            echo $SUCCESS
+            SUCCESS=$(curl --insecure https://kvdb.io/XNjCwZ1jMWuAb3nLUaKCeT/migration_<< parameters.workflow_id >>)
             if(( $SUCCESS==1 )); 
             then
               cd ~/backend
@@ -242,15 +241,10 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
-            echo "export BACKEND_IP=\"$$BACKEND_IP\"" > env_vars
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/env_vars
       - run:
           name: Deploy frontend objects
           command: |
@@ -311,12 +305,12 @@ jobs:
             apk add curl
             apk add --update nodejs npm
             apk add aws-cli
-      - attach_workspace:
-          at: ~/
       - run:
           name: Get backend url
           command: |
-            source ~/project/env_vars
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
             echo $BACKEND_IP
       - run:
           name: Backend smoke test.
