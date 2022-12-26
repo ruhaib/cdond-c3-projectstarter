@@ -1,12 +1,12 @@
 - name: Copy index test page
   template:
-    src: "backend/artifact.tar.gz"
-    dest: "~/backend/artifact.tar.gz"
+    src: "/root/project/artifact.tar.gz"
+    dest: "~/artifact.tar.gz"
 
 - name: Extract foo.tgz into /var/lib/foo
   ansible.builtin.unarchive:
-    src: ~/backend/artifact.tar.gz
-    dest: ~/backend/
+    src: ~/artifact.tar.gz
+    dest: ~/backend
 
 - name: "start server"
   shell: |
