@@ -162,7 +162,7 @@ jobs:
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/roles/inventory.txt
+            --output text >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/roles/inventory.txt
       - persist_to_workspace:
           root: ~/
