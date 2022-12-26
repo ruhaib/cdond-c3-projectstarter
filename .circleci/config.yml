@@ -294,6 +294,9 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
+    shell: /bin/sh -leo pipefail
+    environment:
+      BASH_ENV: /etc/profile
     docker:
       - image: alpine:latest
     steps:
@@ -311,7 +314,7 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
-            echo $BACKEND_IP
+            echo 'export BACKEND_IP="$BACKEND_IP"' >> $BASH_ENV
       - run:
           name: Backend smoke test.
           command: |
