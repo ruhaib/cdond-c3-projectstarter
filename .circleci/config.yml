@@ -163,7 +163,7 @@ jobs:
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/roles/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -343,10 +343,10 @@ jobs:
             else
               return 1
             fi
-#      - destroy-environment:
-#          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-#      - revert-migrations:
-#          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 workflows:
   default:
@@ -365,11 +365,11 @@ workflows:
           requires: [ test-frontend, test-backend, scan-frontend, scan-backend ]
       - configure-infrastructure:
           requires: [ deploy-infrastructure ]
-#      - run-migrations:
-#          requires: [ configure-infrastructure ]
-#      - deploy-frontend:
-#          requires: [ run-migrations ]
-#      - deploy-backend:
-#          requires: [ run-migrations ]
-#      - smoke-test:
-#          requires: [deploy-backend, deploy-frontend]
+      - run-migrations:
+          requires: [ configure-infrastructure ]
+      - deploy-frontend:
+          requires: [ run-migrations ]
+      - deploy-backend:
+          requires: [ run-migrations ]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
