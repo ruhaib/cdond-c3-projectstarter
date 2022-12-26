@@ -294,6 +294,32 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
+  smoke-test:
+    docker:
+      - image: alpine:latest
+    steps:
+      # Checkout code from git
+#      - run:
+#          name: Install dependencies
+#          command: |
+#            apk update
+#            apk upgrade
+#            apk add curl
+#            apk add --update nodejs npm
+      - run:
+          name: Get backend url
+          command: |
+            echo $BACKEND_IP
+#      - run:
+#          name: Backend smoke test.
+#          command: |
+#            # your code here
+#      - run:
+#          name: Frontend smoke test.
+#          command: |
+#            # your code here
+      # Here's where you will add some code to rollback on failure
+
 workflows:
   default:
     jobs:
@@ -317,3 +343,5 @@ workflows:
           requires: [ run-migrations ]
       - deploy-backend:
           requires: [ run-migrations ]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
