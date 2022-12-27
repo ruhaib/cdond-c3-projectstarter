@@ -402,14 +402,14 @@ jobs:
                     --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
             echo "export OldWorkflowID=\"$OldWorkflowID\"" >> $BASH_ENV
-            echo "export STACKS=($STACKS[@])" >> $BASH_ENV
+            echo "export STACKS=(${STACKS[@]})" >> $BASH_ENV
             cat $BASH_ENV
       - run:
           name: Remove old stacks and files
           command: |
             cat $BASH_ENV
             source $BASH_ENV
-            echo $STACKS
+            echo ${STACKS[@]}
             echo $OldWorkflowID
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
