@@ -2,4 +2,4 @@
 https://github.com/ruhaib/cdond-c3-projectstarter
 
 [url02]
-http://udapeople-ruhaib-31a920f.s3-website-us-east-1.amazonaws.com/
+http://udapeople-ruhaib-1f61dde.s3-website-us-east-1.amazonaws.com/#/employees
